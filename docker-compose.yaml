@@ -1,0 +1,17 @@
+services:
+  order-management-gateway:
+    image: ecommerce-gateway:1.0.0
+    build:
+      dockerfile: Dockerfile
+    container_name: ecommerce-gateway
+    ports:
+      - 7071:7071
+    restart: unless-stopped
+    networks:
+      - gateway-network
+    environment:
+      EUREKA_SERVER: ${EUREKA_SERVER}
+networks:
+  gateway-network:
+    external: true
+    name: ecommerce-network
