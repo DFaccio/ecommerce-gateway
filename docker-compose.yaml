@@ -11,6 +11,7 @@ services:
       - gateway-network
     environment:
       EUREKA_SERVER: ${EUREKA_SERVER}
+      PRODUCT_ADDRESS: ${PRODUCT_ADDRESS}
 networks:
   gateway-network:
     external: true

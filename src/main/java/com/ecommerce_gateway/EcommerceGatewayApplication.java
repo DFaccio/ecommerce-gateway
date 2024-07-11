@@ -8,8 +8,8 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 @EnableDiscoveryClient
 public class EcommerceGatewayApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(EcommerceGatewayApplication.class, args);
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(EcommerceGatewayApplication.class, args);
+    }
 
 }
