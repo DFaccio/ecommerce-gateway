@@ -18,6 +18,9 @@ public class RoutesConfig {
     @Value("${shopping.cart.service.address}")
     private String shoppingCartUri;
 
+    @Value("${users.service.address}")
+    private String userUri;
+
     @Bean
     public RouteLocator custom(RouteLocatorBuilder routeLocatorBuilder) {
         return routeLocatorBuilder.routes()
@@ -31,6 +34,9 @@ public class RoutesConfig {
                 .route("shopping-cart", r -> r.path("/ecommerce/shopping-cart/**")
                         .filters(f -> f.stripPrefix(2))
                         .uri(shoppingCartUri))
+                .route("users", r -> r.path("/ecommerce/**")
+                        .filters(f -> f.stripPrefix(1))
+                        .uri(userUri))
                 .build();
     }
 
