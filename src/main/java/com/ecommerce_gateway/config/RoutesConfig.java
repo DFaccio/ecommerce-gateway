@@ -34,8 +34,9 @@ public class RoutesConfig {
                 .route("shopping-cart", r -> r.path("/ecommerce/shopping-cart/**")
                         .filters(f -> f.stripPrefix(2))
                         .uri(shoppingCartUri))
-                .route("users", r -> r.path("/ecommerce/**")
-                        .filters(f -> f.stripPrefix(1))
+                .route("users", r -> r.path("/ecommerce/authentication-api/**")
+                        .and().not(p -> p.path("/ecommerce/authentication-api/documentation/**", "/ecommerce/authentication-api/doc/**"))
+                        .filters(f -> f.stripPrefix(2))
                         .uri(userUri))
                 .build();
     }
@@ -51,6 +52,14 @@ public class RoutesConfig {
                         .filters(f -> f.stripPrefix(2)
                                 .rewritePath("/documentation(?<segment>.*)", "/documentation${segment}"))
                         .uri(productUri))
+                .route("authentication-doc-swagger-json", r -> r.path("/ecommerce/authentication-api/documentation/**")
+                        .filters(f -> f.stripPrefix(2)
+                                .rewritePath("/documentation(?<segment>.*)", "/documentation${segment}"))
+                        .uri(userUri))
+                .route("authentication-doc-swagger-ui", r -> r.path("/ecommerce/authentication-api/doc/**")
+                        .filters(f -> f.stripPrefix(2)
+                                .rewritePath("/doc(?<segment>.*)", "/doc${segment}"))
+                        .uri(userUri))
                 .build();
     }
 }

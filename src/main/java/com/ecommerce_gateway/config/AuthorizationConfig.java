@@ -1,14 +1,13 @@
 package com.ecommerce_gateway.config;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.oauth2.jwt.NimbusReactiveJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
-import org.springframework.security.oauth2.server.resource.authentication.JwtReactiveAuthenticationManager;
 import org.springframework.security.oauth2.server.resource.authentication.ReactiveJwtAuthenticationConverterAdapter;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 
@@ -16,26 +15,43 @@ import org.springframework.security.web.server.SecurityWebFilterChain;
 @EnableWebFluxSecurity
 public class AuthorizationConfig {
 
-    @Value("${users.service.address}")
-    private String userUri;
+    private static final String[] AUTH_WHITELIST_DOCUMENTATION = {
+            "/ecommerce/inventory/documentation/**",
+            "/ecommerce/inventory/doc/**",
+            "/ecommerce/authentication-api/documentation/**",
+            "/ecommerce/authentication-api/doc/**"
+    };
+
+    private static final String[] SERVICES_WHITELIST = {
+            "/ecommerce/authentication-api/login",
+            "/ecommerce/authentication-api/users/basic"
+    };
+
+    private static final String JWT_PUBLIC_KEY_SERVER = "http://localhost:7073/key/.well-known/jwks.json";
 
     @Bean
     public SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
         http
+                .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .authorizeExchange(exchanges -> exchanges
-                        .pathMatchers("/documentation/**", "/doc/**").permitAll()
+                        .pathMatchers(AUTH_WHITELIST_DOCUMENTATION).permitAll()
+                        .pathMatchers(SERVICES_WHITELIST).permitAll()
+                        .pathMatchers(HttpMethod.DELETE,"/ecommerce/inventory/**").hasAuthority("SCOPE_ADMIN")
+                        .pathMatchers(HttpMethod.POST,"/ecommerce/inventory/**").hasAuthority("SCOPE_ADMIN")
+                        .pathMatchers(HttpMethod.PUT,"/ecommerce/inventory/**").hasAuthority("SCOPE_ADMIN")
                         .anyExchange().authenticated()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(
                         jwtSpec -> jwtSpec.jwtDecoder(jwtDecoder())
                                 .jwtAuthenticationConverter(jwtAuthenticationConverter()))
                 );
+
         return http.build();
     }
 
     @Bean
     public NimbusReactiveJwtDecoder jwtDecoder() {
-        return NimbusReactiveJwtDecoder.withJwkSetUri(userUri).build();
+        return NimbusReactiveJwtDecoder.withJwkSetUri(JWT_PUBLIC_KEY_SERVER).build();
     }
 
     @Bean
@@ -44,46 +60,9 @@ public class AuthorizationConfig {
         grantedAuthoritiesConverter.setAuthorityPrefix("SCOPE_");
         grantedAuthoritiesConverter.setAuthoritiesClaimName("scope");
 
-        JwtReactiveAuthenticationManager authenticationManager = new JwtReactiveAuthenticationManager(jwtDecoder());
         JwtAuthenticationConverter jwtAuthenticationConverter = new JwtAuthenticationConverter();
         jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(grantedAuthoritiesConverter);
 
         return new ReactiveJwtAuthenticationConverterAdapter(jwtAuthenticationConverter);
     }
-
-   /* private static final String[] AUTH_WHITELIST = {
-            // -- Swagger UI v2
-            "/v2/api-docs",
-            "/swagger-resources",
-            "/swagger-resources/**",
-            "/configuration/ui",
-            "/configuration/security",
-            "/swagger-ui.html",
-            "/webjars/**",
-            // -- Swagger UI v3 (OpenAPI)
-            "/v3/api-docs/**",
-            "/swagger-ui/**",
-            "/doc/**",
-            "/documentation/**"
-    };
-
-    @Bean
-    public WebSecurityCustomizer webSecurityCustomizer() {
-        return web -> web.ignoring().requestMatchers(AUTH_WHITELIST);
-    }
-
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-                .csrf(AbstractHttpConfigurer::disable)
-                .httpBasic(Customizer.withDefaults())
-                .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.POST, "/ecommerce/login").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/ecommerce/users/basic").permitAll()
-                        .anyRequest().authenticated());
-
-        return http.build();
-    }*/
 }
