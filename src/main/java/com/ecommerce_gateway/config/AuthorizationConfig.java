@@ -1,5 +1,6 @@
 package com.ecommerce_gateway.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -10,6 +11,8 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.oauth2.server.resource.authentication.ReactiveJwtAuthenticationConverterAdapter;
 import org.springframework.security.web.server.SecurityWebFilterChain;
+import org.springframework.security.web.server.context.NoOpServerSecurityContextRepository;
+import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 
 @Configuration
 @EnableWebFluxSecurity
@@ -27,18 +30,21 @@ public class AuthorizationConfig {
             "/ecommerce/authentication-api/users/basic"
     };
 
-    private static final String JWT_PUBLIC_KEY_SERVER = "http://localhost:7073/key/.well-known/jwks.json";
+    @Value("${jwt.public.key.server}")
+    private String jwtPublicKeyServer;
 
     @Bean
-    public SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
+    public SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http, UrlBasedCorsConfigurationSource corsConfigurationSource) {
         http
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
+                .cors(corsSpec -> corsSpec.configurationSource(corsConfigurationSource))
+                .securityContextRepository(NoOpServerSecurityContextRepository.getInstance())
                 .authorizeExchange(exchanges -> exchanges
                         .pathMatchers(AUTH_WHITELIST_DOCUMENTATION).permitAll()
                         .pathMatchers(SERVICES_WHITELIST).permitAll()
-                        .pathMatchers(HttpMethod.DELETE,"/ecommerce/inventory/**").hasAuthority("SCOPE_ADMIN")
-                        .pathMatchers(HttpMethod.POST,"/ecommerce/inventory/**").hasAuthority("SCOPE_ADMIN")
-                        .pathMatchers(HttpMethod.PUT,"/ecommerce/inventory/**").hasAuthority("SCOPE_ADMIN")
+                        .pathMatchers(HttpMethod.DELETE, "/ecommerce/inventory/**").hasAuthority("SCOPE_ADMIN")
+                        .pathMatchers(HttpMethod.POST, "/ecommerce/inventory/**").hasAuthority("SCOPE_ADMIN")
+                        .pathMatchers(HttpMethod.PUT, "/ecommerce/inventory/**").hasAuthority("SCOPE_ADMIN")
                         .anyExchange().authenticated()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(
@@ -51,7 +57,7 @@ public class AuthorizationConfig {
 
     @Bean
     public NimbusReactiveJwtDecoder jwtDecoder() {
-        return NimbusReactiveJwtDecoder.withJwkSetUri(JWT_PUBLIC_KEY_SERVER).build();
+        return NimbusReactiveJwtDecoder.withJwkSetUri(jwtPublicKeyServer).build();
     }
 
     @Bean
