@@ -71,6 +71,7 @@ todos acessos aos métodos será feito a partir do gateway.
 Portanto, para testes, considerando que está sendo executando localmente, isso inclui containes locais, seria:
 
 http://localhost:7071/${server.servlet.context-path}/${path_adicionado_gateway}/${resto_da_url_definida_no_request_mapping}
+
 Resultado: http://localhost:7071/ecommerce/inventory/api/v1/product
 
 Obs.: Caso não esteja em container, o acesso aos serviços será possível através de suas respectivas portas.
