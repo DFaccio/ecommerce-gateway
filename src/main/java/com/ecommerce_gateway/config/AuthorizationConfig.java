@@ -22,7 +22,11 @@ public class AuthorizationConfig {
             "/ecommerce/inventory/documentation/**",
             "/ecommerce/inventory/doc/**",
             "/ecommerce/authentication-api/documentation/**",
-            "/ecommerce/authentication-api/doc/**"
+            "/ecommerce/authentication-api/doc/**",
+            "/ecommerce/payment/documentation/**",
+            "/ecommerce/payment/doc/**",
+            "/ecommerce/shopping-cart/documentation/**",
+            "/ecommerce/shopping-cart/doc/**"
     };
 
     private static final String[] SERVICES_WHITELIST = {
